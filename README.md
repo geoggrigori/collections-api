@@ -9,6 +9,9 @@ Built with **Ruby on Rails 7 (API-only) + PostgreSQL + Sidekiq + Redis**, with
 optional **Stripe** and **LLM** integrations that degrade gracefully so the
 whole thing runs locally with zero external credentials.
 
+**Live dashboard (front-end) → https://collections-dashboard-beta.vercel.app**
+([source](https://github.com/geoggrigori/collections-dashboard))
+
 ---
 
 ## Why this project
