@@ -13,12 +13,18 @@ Rails.application.routes.draw do
   end
   mount Sidekiq::Web => "/sidekiq"
 
+  # Webhooks de provedores externos.
+  post "/webhooks/stripe", to: "webhooks/stripe#create"
+
   namespace :api do
     namespace :v1 do
       resources :customers, only: %i[index show create] do
         resources :invoices, only: %i[index], module: :customers
       end
       resources :invoices, only: %i[index show create]
+      resources :payments, only: %i[index show create] do
+        post :settle, on: :member
+      end
     end
   end
 end

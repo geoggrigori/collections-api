@@ -29,15 +29,19 @@ class Invoice < ApplicationRecord
     applied
   end
 
-  def overdue?
+  # "Efetivamente vencida": tem saldo em aberto e ja passou do vencimento.
+  # Diferente do status :overdue (atualizado em lote pelo OverdueSweepJob);
+  # aqui usamos o predicado de enum overdue? para evitar recursao.
+  def past_due?
     unpaid? && due_date < Date.current
   end
 
-  private
-
+  # Possui saldo em aberto (qualquer status exceto paid/void).
   def unpaid?
     open? || partially_paid? || overdue?
   end
+
+  private
 
   def set_initial_balance
     self.balance_cents ||= amount_cents

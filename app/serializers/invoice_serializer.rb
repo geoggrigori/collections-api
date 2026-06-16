@@ -12,7 +12,7 @@ module InvoiceSerializer
       status: invoice.status,
       issued_on: invoice.issued_on.iso8601,
       due_date: invoice.due_date.iso8601,
-      overdue: invoice.overdue?,
+      overdue: invoice.past_due?,
       external_ref: invoice.external_ref,
       created_at: invoice.created_at.iso8601
     }
