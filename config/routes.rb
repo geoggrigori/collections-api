@@ -25,6 +25,7 @@ Rails.application.routes.draw do
       resources :payments, only: %i[index show create] do
         post :settle, on: :member
       end
+      resources :remittances, only: %i[index show create]
     end
   end
 end

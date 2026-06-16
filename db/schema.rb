@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_06_16_220655) do
+ActiveRecord::Schema[7.2].define(version: 2026_06_16_225820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -75,8 +75,27 @@ ActiveRecord::Schema[7.2].define(version: 2026_06_16_220655) do
     t.check_constraint "amount_cents > 0", name: "payment_amount_positive"
   end
 
+  create_table "remittances", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.text "raw_text", null: false
+    t.bigint "amount_cents", null: false
+    t.integer "status", default: 0, null: false
+    t.float "confidence"
+    t.bigint "payment_id"
+    t.string "match_source"
+    t.jsonb "matched_invoice_numbers", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id", "status"], name: "index_remittances_on_customer_id_and_status"
+    t.index ["customer_id"], name: "index_remittances_on_customer_id"
+    t.index ["payment_id"], name: "index_remittances_on_payment_id"
+    t.check_constraint "amount_cents > 0", name: "remittance_amount_positive"
+  end
+
   add_foreign_key "invoices", "customers"
   add_foreign_key "payment_applications", "invoices"
   add_foreign_key "payment_applications", "payments"
   add_foreign_key "payments", "customers"
+  add_foreign_key "remittances", "customers"
+  add_foreign_key "remittances", "payments"
 end
