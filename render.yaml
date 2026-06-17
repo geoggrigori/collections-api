@@ -16,6 +16,7 @@ services:
     name: collections-api
     runtime: ruby
     plan: free
+    healthCheckPath: /up
     buildCommand: "bundle install"
     startCommand: "bundle exec rails db:prepare && bundle exec puma -C config/puma.rb"
     envVars:
@@ -36,5 +37,5 @@ services:
         value: async
       - key: SEED_INVOICES
         value: "3000"
-      - key: RAILS_MASTER_KEY
-        sync: false
+      - key: SECRET_KEY_BASE
+        generateValue: true
