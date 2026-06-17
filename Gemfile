@@ -36,7 +36,7 @@ gem "pagy", "~> 9.3"
 gem "sidekiq", "~> 7.3"
 
 # Integracao de pagamentos (ACH/cartao) em test mode
-gem "stripe", "~> 13.0"
+gem "stripe", "~> 19.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
