@@ -41,8 +41,9 @@ module CollectionsApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    # Processa jobs de background via Sidekiq.
-    config.active_job.queue_adapter = :sidekiq
+    # Adapter de jobs configuravel: "sidekiq" (com worker dedicado) ou "async"
+    # (in-process, util em planos de hospedagem sem worker). Default sidekiq.
+    config.active_job.queue_adapter = ENV.fetch("ACTIVE_JOB_ADAPTER", "sidekiq").to_sym
 
     # Sessao/cookies necessarios para o dashboard do Sidekiq (modo API nao inclui).
     config.middleware.use ActionDispatch::Cookies

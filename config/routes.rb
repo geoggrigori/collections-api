@@ -11,7 +11,7 @@ Rails.application.routes.draw do
         ActiveSupport::SecurityUtils.secure_compare(password, ENV["SIDEKIQ_PASSWORD"].to_s)
     end
   end
-  mount Sidekiq::Web => "/sidekiq"
+  mount Sidekiq::Web => "/sidekiq" if ENV["REDIS_URL"].present? || Rails.env.development?
 
   # Webhooks de provedores externos.
   post "/webhooks/stripe", to: "webhooks/stripe#create"
