@@ -33,7 +33,7 @@ gem "rack-cors"
 gem "pagy", "~> 9.3"
 
 # Processamento assincrono / ETL em background
-gem "sidekiq", "~> 7.3"
+gem "sidekiq", "~> 8.1"
 
 # Integracao de pagamentos (ACH/cartao) em test mode
 gem "stripe", "~> 13.0"
