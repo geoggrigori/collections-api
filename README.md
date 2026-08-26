@@ -1,28 +1,50 @@
-# Collections API
+<!-- ══════════════════════════ TÍTULO ══════════════════════════ -->
+<div align="center">
+  <img src="docs/title-banner.svg" width="100%" alt="Collections API"/>
+</div>
 
-A backend for **accounts-receivable (AR) and collections automation** in the
-distribution industry — the kind of system that ingests invoices from ERPs,
-reconciles incoming payments, and uses an LLM to match free-text remittance
-advice to the right invoices.
+<!-- ══════════════════════ IDIOMAS / LANGUAGES ══════════════════════ -->
+<div align="center">
+<a href="README.md"><img src="https://img.shields.io/badge/Português-1987F0?style=for-the-badge" alt="Português"/></a>
+<a href="README.en.md"><img src="https://img.shields.io/badge/English-555555?style=for-the-badge" alt="English"/></a>
+<a href="README.es.md"><img src="https://img.shields.io/badge/Español-555555?style=for-the-badge" alt="Español"/></a>
+</div>
 
-Built with **Ruby on Rails 7 (API-only) + PostgreSQL + Sidekiq + Redis**, with
-optional **Stripe** and **LLM** integrations that degrade gracefully so the
-whole thing runs locally with zero external credentials.
+<h1 align="center">Collections API</h1>
+<p align="center"><em>Automação de contas a receber e cobrança para o setor de distribuição</em></p>
+<p align="center"><strong>ERP → import idempotente → aplicação de pagamento FIFO → matching de remessa via LLM</strong></p>
 
-**Live dashboard (front-end) → https://collections-dashboard-beta.vercel.app**
-([source](https://github.com/geoggrigori/collections-dashboard))
+<div align="center">
+<img src="https://img.shields.io/badge/Ruby_on_Rails_7-CC0000?style=flat-square&logo=rubyonrails&logoColor=white" alt="rails"/>
+<img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="postgres"/>
+<img src="https://img.shields.io/badge/Sidekiq_%2B_Redis-D7263D?style=flat-square" alt="sidekiq"/>
+<img src="https://img.shields.io/badge/Stripe-635BFF?style=flat-square&logo=stripe&logoColor=white" alt="stripe"/>
+<img src="https://img.shields.io/badge/License-MIT-2E7D32?style=flat-square" alt="license"/>
+</div>
 
----
+<div align="center">
+<a href="#por-que-esse-projeto"><img src="https://img.shields.io/badge/▸_POR_QUE-1987F0?style=for-the-badge" alt="porque"/></a>
+<a href="#arquitetura"><img src="https://img.shields.io/badge/▸_ARQUITETURA-000000?style=for-the-badge" alt="arquitetura"/></a>
+<a href="#tecnologias"><img src="https://img.shields.io/badge/▸_TECNOLOGIAS-1987F0?style=for-the-badge" alt="tech"/></a>
+<a href="#api"><img src="https://img.shields.io/badge/▸_API-000000?style=for-the-badge" alt="api"/></a>
+<a href="#uso"><img src="https://img.shields.io/badge/▸_USO-1987F0?style=for-the-badge" alt="uso"/></a>
+</div>
 
-## Why this project
+<br/>
 
-Distributors run on thin margins and slow cash cycles. The hard problems are not
-CRUD — they are: keeping AR in sync with the ERP at scale, applying cash to the
-right invoices, and turning messy human remittance notes ("paying invoices 1001
-and the March one") into clean ledger entries. This codebase models those
-problems end to end.
+> 🔗 **Dashboard ao vivo (front-end):** [collections-dashboard-beta.vercel.app](https://collections-dashboard-beta.vercel.app) — [código-fonte](https://github.com/geoggrigori/collections-dashboard)
 
-## Architecture
+<div align="center">
+  <img src="docs/screenshot.png" width="100%" alt="Collections API"/>
+</div>
+
+## Por que esse projeto
+
+Distribuidoras trabalham com margens apertadas e ciclos de caixa lentos. Os problemas difíceis não são CRUD — são: manter as contas a receber sincronizadas com o ERP em escala, aplicar o caixa nas faturas certas, e transformar notas de remessa bagunçadas ("pagando as faturas 1001 e a de março") em lançamentos contábeis limpos. Esse código modela esses problemas de ponta a ponta.
+
+**Construído com Ruby on Rails 7 (API-only) + PostgreSQL + Sidekiq + Redis**, com integrações opcionais de **Stripe** e **LLM** que degradam graciosamente — então tudo roda localmente sem nenhuma credencial externa.
+
+## Arquitetura
 
 ```mermaid
 flowchart LR
@@ -37,131 +59,82 @@ flowchart LR
     APP --> DB
 ```
 
-**Layers**
+**Camadas:**
+- **Domain models** — `Customer`, `Invoice`, `Payment`, `PaymentApplication`, `Remittance`, com dinheiro em centavos inteiros, enums e regras de negócio (saldos, limites de crédito, alocação).
+- **REST API versionada** (`/api/v1`) — envelope JSON consistente, paginação (pagy), filtros e tratamento estruturado de erros.
+- **Pipeline de ETL** — um feed de ERP simulado enfileira lotes no Sidekiq; `ErpInvoiceImportJob` faz upsert idempotente por `[customer_id, invoice_number]`.
+- **Pagamentos** — `Payments::Gateway` envolve Stripe (ACH/cartão) com fallback determinístico falso; `Payments::Applicator` aplica caixa FIFO dentro de uma transação com lock.
+- **Matching de remessa via LLM** — `RemittanceMatcher` transforma texto livre de remessa em matches de fatura via `Llm::Client` (Anthropic ou OpenAI), caindo para heurística determinística quando não há chave de API.
 
-- **Domain models** — `Customer`, `Invoice`, `Payment`, `PaymentApplication`,
-  `Remittance`, with money in integer cents, enums, and business rules
-  (balances, credit limits, allocation).
-- **Versioned REST API** (`/api/v1`) — consistent JSON envelope, pagination
-  (pagy), filtering, and structured error handling.
-- **ETL pipeline** — a simulated ERP feed enqueues batches to Sidekiq;
-  `ErpInvoiceImportJob` upserts idempotently by `[customer_id, invoice_number]`.
-- **Payments** — `Payments::Gateway` wraps Stripe (ACH / card) with a
-  deterministic fake fallback; `Payments::Applicator` does FIFO cash
-  application inside a locked transaction.
-- **LLM remittance matching** — `RemittanceMatcher` turns free-text remittance
-  advice into invoice matches via `Llm::Client` (Anthropic or OpenAI), falling
-  back to a deterministic heuristic when no API key is set.
+## Tecnologias
 
-## Tech stack
+| Camada | Escolha |
+|---|---|
+| Linguagem | Ruby 3.3 |
+| Framework | Rails 7.2 (API-only) |
+| Banco | PostgreSQL 16 (índices, check constraints) |
+| Background | Sidekiq 7 + Redis |
+| Pagamentos | Stripe (modo teste) + gateway falso |
+| LLM | Anthropic / OpenAI (plugável) |
+| Paginação | pagy |
+| Testes | RSpec + FactoryBot |
 
-| Concern        | Choice                                  |
-| -------------- | --------------------------------------- |
-| Language       | Ruby 3.3                                |
-| Framework      | Rails 7.2 (API-only)                    |
-| Database       | PostgreSQL 16 (indexes, check constraints) |
-| Background     | Sidekiq 7 + Redis                       |
-| Payments       | Stripe (test mode) + fake gateway       |
-| LLM            | Anthropic / OpenAI (pluggable)          |
-| Pagination     | pagy                                    |
-| Tests          | RSpec + FactoryBot                      |
+## API
 
-## Getting started
-
-Requirements: Ruby 3.3, PostgreSQL, Redis.
+Todos os endpoints estão sob `/api/v1`.
 
 ```bash
-bundle install
-bin/rails db:prepare          # create + migrate
-bin/rails db:seed             # 500 customers, 50k invoices (configurable)
-bin/rails server              # http://localhost:3000
-bundle exec sidekiq -C config/sidekiq.yml   # background worker
-```
-
-Seed size is configurable: `SEED_CUSTOMERS=1000 SEED_INVOICES=100000 bin/rails db:seed`.
-
-Copy `.env.example` to `.env` to enable Stripe and/or an LLM provider. Without
-them, the fake gateway and the heuristic matcher keep every flow working.
-
-## API reference
-
-All endpoints are under `/api/v1`. Collections are paginated (`page`, `limit`).
-
-### Customers
-
-```bash
-# List (filter by status / name / open balance)
+# Clientes (filtro por status / nome / saldo em aberto)
 curl "localhost:3000/api/v1/customers?status=delinquent&with_open_balance=true"
 
-# Create
-curl -X POST localhost:3000/api/v1/customers -H 'Content-Type: application/json' \
-  -d '{"customer":{"name":"Acme Distribution","credit_limit_cents":500000}}'
-```
-
-Each customer payload includes computed `outstanding_balance_cents` and
-`available_credit_cents`.
-
-### Invoices
-
-```bash
+# Faturas
 curl "localhost:3000/api/v1/invoices?overdue=true"
-curl "localhost:3000/api/v1/customers/1/invoices?status=open"
-```
 
-### Payments (Stripe / ACH)
-
-```bash
-# Create a payment intent (recorded as pending)
+# Criar pagamento (Stripe/ACH)
 curl -X POST localhost:3000/api/v1/payments -H 'Content-Type: application/json' \
   -d '{"payment":{"customer_id":1,"amount_cents":25000,"payment_method":"ach"}}'
 
-# Settle it (demo only; in production this arrives via the Stripe webhook)
-curl -X POST localhost:3000/api/v1/payments/1/settle
-```
-
-On settlement, the payment is applied FIFO across the customer's open invoices,
-creating `PaymentApplication` rows and updating each invoice's balance/status.
-
-### Remittance matching (LLM)
-
-```bash
+# Matching de remessa via LLM
 curl -X POST localhost:3000/api/v1/remittances -H 'Content-Type: application/json' \
   -d '{"remittance":{"customer_id":1,"amount_cents":40000,
        "raw_text":"Payment for invoices INV-R1 and also INV-R3, thanks."}}'
 ```
 
-The matcher identifies the referenced invoices (LLM when configured, heuristic
-otherwise), then — if confident — creates a payment and applies it to exactly
-those invoices. Low-confidence advice is flagged `needs_review`.
+Na liquidação, o pagamento é aplicado FIFO nas faturas em aberto do cliente. O matcher identifica as faturas referenciadas (LLM quando configurado, heurística caso contrário); remessas de baixa confiança são marcadas `needs_review`.
 
-## Background jobs & ETL
-
+**Background jobs:**
 ```bash
-# Enqueue an ERP sync: 5,000 invoices in batches of 500 on the :etl queue
-bin/rails 'etl:sync[5000,500]'
-
-# Sweep overdue invoices in one bulk UPDATE
-bin/rails etl:sweep_overdue
+bin/rails 'etl:sync[5000,500]'   # sincroniza 5.000 faturas em lotes de 500
+bin/rails etl:sweep_overdue      # varre faturas vencidas em um UPDATE em massa
 ```
 
-The Sidekiq dashboard is mounted at `/sidekiq` (HTTP basic auth in production via
-`SIDEKIQ_USER` / `SIDEKIQ_PASSWORD`).
+## Uso
 
-## Tests
+Requisitos: Ruby 3.3, PostgreSQL, Redis.
 
+```bash
+bundle install
+bin/rails db:prepare          # cria + migra
+bin/rails db:seed             # 500 clientes, 50k faturas (configurável)
+bin/rails server              # http://localhost:3000
+bundle exec sidekiq -C config/sidekiq.yml   # worker de background
+```
+
+Copie `.env.example` para `.env` pra habilitar Stripe e/ou um provedor de LLM. Sem eles, o gateway falso e o matcher heurístico mantêm tudo funcionando.
+
+**Testes:**
 ```bash
 bundle exec rspec
 ```
 
-Covers domain rules, FIFO cash application, the remittance matcher, and the
-HTTP layer (request specs).
+**Deploy:** um blueprint [`render.yaml`](./render.yaml) provisiona web + worker + PostgreSQL + Redis; `Dockerfile` de produção incluso.
 
-## Deployment
+## Licença
 
-A [`render.yaml`](./render.yaml) blueprint provisions web + worker + PostgreSQL +
-Redis. A production `Dockerfile` is included. Set `RAILS_MASTER_KEY` and any
-optional Stripe / LLM keys as environment variables.
+[MIT](LICENSE).
 
-## License
+<div align="center">
+  <img src="https://file.loading.io/color/feature/thumb/Blues-8.png?" width="100%" height="10px" alt="divider"/>
+</div>
 
-MIT — see [LICENSE](./LICENSE).
+<p align="center"><sub>Desenvolvido por <strong><a href="https://github.com/geoggrigori">Grigori</a></strong> · 2026</sub></p>
