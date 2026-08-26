@@ -34,10 +34,6 @@
 
 > 🔗 **Live dashboard (front-end):** [collections-dashboard-beta.vercel.app](https://collections-dashboard-beta.vercel.app) — [source](https://github.com/geoggrigori/collections-dashboard)
 
-<div align="center">
-  <img src="docs/screenshot.png" width="100%" alt="Collections API"/>
-</div>
-
 ## Why this project
 
 Distributors run on thin margins and slow cash cycles. The hard problems are not CRUD — they are: keeping AR in sync with the ERP at scale, applying cash to the right invoices, and turning messy human remittance notes ("paying invoices 1001 and the March one") into clean ledger entries. This codebase models those problems end to end.
