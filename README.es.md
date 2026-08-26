@@ -34,10 +34,6 @@
 
 > 🔗 **Dashboard en vivo (frontend):** [collections-dashboard-beta.vercel.app](https://collections-dashboard-beta.vercel.app) — [código fuente](https://github.com/geoggrigori/collections-dashboard)
 
-<div align="center">
-  <img src="docs/screenshot.png" width="100%" alt="Collections API"/>
-</div>
-
 ## Por qué este proyecto
 
 Las distribuidoras operan con márgenes ajustados y ciclos de caja lentos. Los problemas difíciles no son CRUD — son: mantener las cuentas por cobrar sincronizadas con el ERP a escala, aplicar el efectivo a las facturas correctas, y convertir notas de remesa desordenadas ("pagando las facturas 1001 y la de marzo") en asientos contables limpios. Este código modela esos problemas de punta a punta.
