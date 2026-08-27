@@ -14,10 +14,6 @@
 
 <br/>
 
-<h1 align="center">Collections API</h1>
-<p align="center"><em>Automatización de cuentas por cobrar y cobranza para el sector de distribución</em></p>
-<p align="center"><strong>ERP → import idempotente → aplicación de pago FIFO → matching de remesas vía LLM</strong></p>
-
 <div align="center">
 <img src="https://img.shields.io/badge/Ruby_on_Rails_7-CC0000?style=flat-square&logo=rubyonrails&logoColor=white" alt="rails"/>
 <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="postgres"/>
