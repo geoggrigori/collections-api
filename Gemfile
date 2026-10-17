@@ -30,7 +30,7 @@ gem "bootsnap", require: false
 gem "rack-cors"
 
 # Paginacao leve e rapida para as APIs
-gem "pagy", "~> 9.3"
+gem "pagy", "~> 43.6"
 
 # Processamento assincrono / ETL em background
 gem "sidekiq", "~> 7.3"
